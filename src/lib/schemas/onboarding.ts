@@ -1,12 +1,24 @@
+import { parsePhoneNumberFromString } from "libphonenumber-js";
 import z from "zod";
 
 const CORPORATION_NUMBER_URL =
   "https://fe-hometask-api.qa.vault.tryvault.com/corporation-number";
 
-/** Canadian (NANP) number: "+1", then a 10-digit number whose area code and exchange start with 2-9. */
-const CANADIAN_PHONE_REGEX = /^\+1[2-9]\d{2}[2-9]\d{6}$/;
+/** Only "+1" followed by exactly 10 digits — no spaces, dashes, or other special characters. */
+const PHONE_FORMAT_REGEX = /^\+1\d{10}$/;
+const PHONE_ERROR_MESSAGE =
+  "Enter a valid Canadian phone number starting with +1";
 export const CORPORATION_NUMBER_LENGTH = 9;
 export const NAME_MAX_LENGTH = 50;
+
+/**
+ * True for a valid Canadian number. "+1" is shared across NANP countries, so
+ * libphonenumber resolves the country from the area code (e.g. 416 → CA, 212 → US).
+ */
+export function isCanadianPhoneNumber(value: string): boolean {
+  const phone = parsePhoneNumberFromString(value);
+  return phone?.country === "CA" && phone.isValid();
+}
 
 async function isCorporationNumberValid(number: string): Promise<boolean> {
   try {
@@ -38,10 +50,8 @@ export const onboardingFormSchema = z.object({
     .string()
     .trim()
     .min(1, "Phone number is required")
-    .regex(
-      CANADIAN_PHONE_REGEX,
-      "Enter a valid Canadian phone number starting with +1",
-    ),
+    .regex(PHONE_FORMAT_REGEX, PHONE_ERROR_MESSAGE)
+    .refine(isCanadianPhoneNumber, PHONE_ERROR_MESSAGE),
   corporationNumber: z
     .string()
     .trim()

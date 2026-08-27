@@ -78,7 +78,8 @@ async function fillForm(
   const fields = getFields();
   await user.type(fields.firstName, values.firstName);
   await user.type(fields.lastName, values.lastName);
-  await user.type(fields.phone, values.phone);
+  // Focusing the phone input prefills "+1", so type only the rest.
+  await user.type(fields.phone, values.phone.replace(/^\+1/, ""));
   await user.type(fields.corporationNumber, values.corporationNumber);
   return fields;
 }
@@ -114,7 +115,7 @@ describe("OnboardingForm", () => {
     mockFetch();
     renderForm();
 
-    await user.type(getFields().phone, "+441234567890");
+    await user.type(getFields().phone, "441234567890");
     await user.tab();
 
     expect(
@@ -122,6 +123,20 @@ describe("OnboardingForm", () => {
         "Enter a valid Canadian phone number starting with +1",
       ),
     ).toBeVisible();
+  });
+
+  it("prefills the phone number with +1 on focus when empty", async () => {
+    mockFetch();
+    renderForm();
+    const { phone } = getFields();
+
+    await user.click(phone);
+    expect(phone).toHaveValue("+1");
+
+    await user.type(phone, "3062776103");
+    await user.tab();
+    await user.click(phone);
+    expect(phone).toHaveValue("+13062776103");
   });
 
   it("validates the corporation number against the API on blur", async () => {

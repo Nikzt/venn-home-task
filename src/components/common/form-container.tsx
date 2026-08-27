@@ -1,5 +1,8 @@
 import { Card, CardContent, CardTitle } from "../ui/card";
 
+/**
+ * Full page layout for form submission
+ */
 export default function FormContainer({
   children,
   title,

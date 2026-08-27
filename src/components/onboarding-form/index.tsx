@@ -1,7 +1,6 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { ArrowRight, CheckCircle2, Loader2 } from "lucide-react";
 import { Controller, useForm } from "react-hook-form";
 import {
   CORPORATION_NUMBER_LENGTH,
@@ -9,9 +8,8 @@ import {
   type OnboardingFormValues,
   onboardingFormSchema,
 } from "@/lib/schemas/onboarding";
-import { cn } from "@/lib/utils";
 import { useSubmitOnboarding } from "@/queries/onboarding";
-import { Button } from "../ui/button";
+import FormSubmitButton from "../common/form-submit-button";
 import {
   Field,
   FieldError,
@@ -20,6 +18,8 @@ import {
   FieldSet,
 } from "../ui/field";
 import { Input } from "../ui/input";
+
+const PHONE_PLACEHOLDER = "+1";
 
 export default function OnboardingForm() {
   const form = useForm<OnboardingFormValues>({
@@ -36,7 +36,7 @@ export default function OnboardingForm() {
 
   const submitOnboarding = useSubmitOnboarding();
 
-  function onSubmit(values: OnboardingFormValues) {
+  async function onSubmit(values: OnboardingFormValues) {
     return submitOnboarding.mutateAsync(values).catch(() => {
       // Error is surfaced via submitOnboarding.error below.
     });
@@ -101,8 +101,11 @@ export default function OnboardingForm() {
                   id="phoneNumber"
                   type="tel"
                   autoComplete="off"
-                  placeholder="+1"
+                  placeholder={PHONE_PLACEHOLDER}
                   aria-invalid={fieldState.invalid}
+                  onFocus={() => {
+                    if (field.value === "") field.onChange(PHONE_PLACEHOLDER);
+                  }}
                 />
                 {fieldState.invalid && (
                   <FieldError errors={[fieldState.error]} />
@@ -138,35 +141,11 @@ export default function OnboardingForm() {
             {submitOnboarding.error.message}
           </p>
         )}
-        <Button
-          type="submit"
-          className={cn(
-            "w-full",
-            submitOnboarding.isSuccess &&
-              "bg-transparent text-muted-foreground transition-colors hover:bg-transparent",
-          )}
-          disabled={
-            form.formState.isSubmitting ||
-            submitOnboarding.isPending ||
-            submitOnboarding.isSuccess
-          }
-        >
-          {submitOnboarding.isSuccess ? (
-            <>
-              Success
-              <CheckCircle2 className="" />
-            </>
-          ) : (
-            <>
-              Submit{" "}
-              {form.formState.isSubmitting ? (
-                <Loader2 className="animate-spin" />
-              ) : (
-                <ArrowRight />
-              )}
-            </>
-          )}
-        </Button>
+        <FormSubmitButton
+          isSubmitting={form.formState.isSubmitting}
+          isPending={submitOnboarding.isPending}
+          isSuccess={submitOnboarding.isSuccess}
+        />
       </FieldSet>
     </form>
   );
