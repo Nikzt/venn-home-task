@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { isCanadianPhoneNumber } from "./onboarding";
+import { isCanadianPhoneNumber, onboardingFormSchema } from "./onboarding";
 
 describe("isCanadianPhoneNumber", () => {
   it.each([
@@ -21,5 +21,39 @@ describe("isCanadianPhoneNumber", () => {
     ["", "empty"],
   ])("rejects %s — %s", (phone) => {
     expect(isCanadianPhoneNumber(phone)).toBe(false);
+  });
+});
+
+describe("onboardingFormSchema", () => {
+  const valid = {
+    firstName: "Ada",
+    lastName: "Lovelace",
+    phone: "+14165551234",
+    corporationNumber: "123456789",
+  };
+
+  it("is synchronous and accepts valid values", () => {
+    expect(onboardingFormSchema.safeParse(valid).success).toBe(true);
+  });
+
+  it("rejects a corporation number of the wrong length", () => {
+    const result = onboardingFormSchema.safeParse({
+      ...valid,
+      corporationNumber: "12345",
+    });
+    expect(result.success).toBe(false);
+    expect(result.error?.issues[0]?.message).toBe(
+      "Corporation number must be 9 characters",
+    );
+  });
+
+  it("trims whitespace from all fields", () => {
+    const result = onboardingFormSchema.parse({
+      firstName: " Ada ",
+      lastName: " Lovelace ",
+      phone: " +14165551234 ",
+      corporationNumber: " 123456789 ",
+    });
+    expect(result).toEqual(valid);
   });
 });
