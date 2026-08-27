@@ -2,7 +2,7 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMemo } from "react";
-import { Controller, useForm } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import {
   CORPORATION_NUMBER_LENGTH,
   createOnboardingFormSchema,
@@ -12,15 +12,8 @@ import {
 import { useCorporationNumberValidator } from "@/queries/corporation-number";
 import { useSubmitOnboarding } from "@/queries/onboarding";
 import FormSubmitButton from "../common/form-submit-button";
-import {
-  Field,
-  FieldError,
-  FieldGroup,
-  FieldLabel,
-  FieldSet,
-  FieldValidationResult,
-} from "../ui/field";
-import { Input } from "../ui/input";
+import FormTextField from "../common/form-text-field";
+import { FieldSet } from "../ui/field";
 
 const PHONE_PLACEHOLDER = "+1";
 
@@ -55,104 +48,44 @@ export default function OnboardingForm() {
     <form onSubmit={form.handleSubmit(onSubmit)} noValidate>
       <FieldSet>
         <div className="flex md:flex-row flex-col gap-4">
-          <FieldGroup>
-            <Controller
-              name="firstName"
-              control={form.control}
-              render={({ field, fieldState }) => (
-                <Field data-invalid={fieldState.invalid}>
-                  <FieldLabel htmlFor="firstName">First Name</FieldLabel>
-                  <Input
-                    {...field}
-                    id="firstName"
-                    autoComplete="off"
-                    maxLength={NAME_MAX_LENGTH}
-                    aria-invalid={fieldState.invalid}
-                  />
-                  {fieldState.invalid && (
-                    <FieldError errors={[fieldState.error]} />
-                  )}
-                </Field>
-              )}
-            />
-          </FieldGroup>
-          <FieldGroup>
-            <Controller
-              name="lastName"
-              control={form.control}
-              render={({ field, fieldState }) => (
-                <Field data-invalid={fieldState.invalid}>
-                  <FieldLabel htmlFor="lastName">Last Name</FieldLabel>
-                  <Input
-                    {...field}
-                    id="lastName"
-                    autoComplete="off"
-                    maxLength={NAME_MAX_LENGTH}
-                    aria-invalid={fieldState.invalid}
-                  />
-                  {fieldState.invalid && (
-                    <FieldError errors={[fieldState.error]} />
-                  )}
-                </Field>
-              )}
-            />
-          </FieldGroup>
+          <FormTextField
+            name="firstName"
+            control={form.control}
+            label="First Name"
+            inputProps={{ maxLength: NAME_MAX_LENGTH }}
+          />
+          <FormTextField
+            name="lastName"
+            control={form.control}
+            label="Last Name"
+            inputProps={{ maxLength: NAME_MAX_LENGTH }}
+          />
         </div>
-        <FieldGroup>
-          <Controller
-            name="phone"
-            control={form.control}
-            render={({ field, fieldState }) => (
-              <Field data-invalid={fieldState.invalid}>
-                <FieldLabel htmlFor="phoneNumber">Phone Number</FieldLabel>
-                <Input
-                  {...field}
-                  id="phoneNumber"
-                  type="tel"
-                  autoComplete="off"
-                  placeholder={PHONE_PLACEHOLDER}
-                  aria-invalid={fieldState.invalid}
-                  onFocus={() => {
-                    if (field.value === "") field.onChange(PHONE_PLACEHOLDER);
-                  }}
-                />
-                {fieldState.invalid && (
-                  <FieldError errors={[fieldState.error]} />
-                )}
-                <FieldValidationResult
-                  isLoading={fieldState.isValidating}
-                  isValid={fieldState.isTouched && !fieldState.invalid}
-                />
-              </Field>
-            )}
-          />
-        </FieldGroup>
-        <FieldGroup>
-          <Controller
-            name="corporationNumber"
-            control={form.control}
-            render={({ field, fieldState }) => (
-              <Field data-invalid={fieldState.invalid}>
-                <FieldLabel htmlFor="corpNumber">Corporation Number</FieldLabel>
-                <Input
-                  {...field}
-                  id="corpNumber"
-                  autoComplete="off"
-                  inputMode="numeric"
-                  maxLength={CORPORATION_NUMBER_LENGTH}
-                  aria-invalid={fieldState.invalid}
-                />
-                {fieldState.invalid && (
-                  <FieldError errors={[fieldState.error]} />
-                )}
-                <FieldValidationResult
-                  isLoading={fieldState.isValidating}
-                  isValid={fieldState.isTouched && !fieldState.invalid}
-                />
-              </Field>
-            )}
-          />
-        </FieldGroup>
+        <FormTextField
+          name="phone"
+          control={form.control}
+          id="phoneNumber"
+          label="Phone Number"
+          showValidationResult
+          inputProps={(field) => ({
+            type: "tel",
+            placeholder: PHONE_PLACEHOLDER,
+            onFocus: () => {
+              if (field.value === "") field.onChange(PHONE_PLACEHOLDER);
+            },
+          })}
+        />
+        <FormTextField
+          name="corporationNumber"
+          control={form.control}
+          id="corpNumber"
+          label="Corporation Number"
+          showValidationResult
+          inputProps={{
+            inputMode: "numeric",
+            maxLength: CORPORATION_NUMBER_LENGTH,
+          }}
+        />
         {submitOnboarding.isError && (
           <p role="alert" className="text-destructive text-sm">
             {submitOnboarding.error.message}
