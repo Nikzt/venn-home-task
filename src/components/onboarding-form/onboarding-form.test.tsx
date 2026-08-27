@@ -35,10 +35,10 @@ function mockFetch(onSubmit: SubmitHandler = () => new Response(null)) {
         const number = url.slice(CORPORATION_NUMBER_URL.length + 1);
         return number === VALID_CORPORATION_NUMBER
           ? jsonResponse({ corporationNumber: number, valid: true })
-          : jsonResponse({
-              valid: false,
-              message: "Invalid corporation number",
-            });
+          : jsonResponse(
+              { valid: false, message: "Invalid corporation number" },
+              404,
+            );
       }
       if (url === PROFILE_DETAILS_URL) {
         return onSubmit(JSON.parse(String(init?.body)));
@@ -173,6 +173,26 @@ describe("OnboardingForm", () => {
     await user.tab();
     await user.click(firstName);
     await user.tab();
+
+    const lookups = fetchMock.mock.calls.filter(([input]) =>
+      input.toString().startsWith(CORPORATION_NUMBER_URL),
+    );
+    expect(lookups).toHaveLength(1);
+  });
+
+  it("caches invalid (404) lookups too, so re-validating does not refetch", async () => {
+    const fetchMock = mockFetch();
+    renderForm();
+    const { corporationNumber } = getFields();
+
+    await user.type(corporationNumber, "123456780");
+    await user.tab();
+    expect(await screen.findByText("Invalid corporation number")).toBeVisible();
+
+    await user.click(corporationNumber);
+    await user.tab();
+    await user.click(getFields().submit);
+    expect(await screen.findByText("Invalid corporation number")).toBeVisible();
 
     const lookups = fetchMock.mock.calls.filter(([input]) =>
       input.toString().startsWith(CORPORATION_NUMBER_URL),

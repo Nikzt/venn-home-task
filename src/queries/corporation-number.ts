@@ -22,9 +22,14 @@ export async function fetchCorporationNumber(
   const response = await fetch(
     `${CORPORATION_NUMBER_URL}/${encodeURIComponent(number)}`,
   );
-  if (!response.ok) throw new CorporationNumberLookupError();
-
-  const data: Partial<CorporationNumberResult> = await response.json();
+  // The API answers 404 (with a `{ valid: false, message }` body) for unknown
+  // numbers, so the status code alone can't distinguish "invalid" from
+  // "lookup failed" — inspect the body first and only fail on an unparseable one.
+  const data: Partial<CorporationNumberResult> = await response
+    .json()
+    .catch(() => {
+      throw new CorporationNumberLookupError();
+    });
   if (data.valid === true) {
     return { valid: true, corporationNumber: number };
   }
