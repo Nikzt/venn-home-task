@@ -52,7 +52,10 @@ function mockFetch(onSubmit: SubmitHandler = () => new Response(null)) {
 
 function renderForm() {
   const queryClient = new QueryClient({
-    defaultOptions: { mutations: { retry: false } },
+    defaultOptions: {
+      queries: { retry: false },
+      mutations: { retry: false },
+    },
   });
   return render(
     <QueryClientProvider client={queryClient}>
@@ -150,6 +153,50 @@ describe("OnboardingForm", () => {
     expect(fetchMock).toHaveBeenCalledWith(
       `${CORPORATION_NUMBER_URL}/123456780`,
     );
+  });
+
+  it("re-uses the cached corporation number lookup instead of calling the API again", async () => {
+    const fetchMock = mockFetch();
+    renderForm();
+    const { corporationNumber, firstName } = getFields();
+
+    await user.type(corporationNumber, VALID_CORPORATION_NUMBER);
+    await user.tab();
+    await waitFor(() =>
+      expect(fetchMock).toHaveBeenCalledWith(
+        `${CORPORATION_NUMBER_URL}/${VALID_CORPORATION_NUMBER}`,
+      ),
+    );
+
+    // Re-validating the same value (blur again, blur other fields) must not refetch.
+    await user.click(corporationNumber);
+    await user.tab();
+    await user.click(firstName);
+    await user.tab();
+
+    const lookups = fetchMock.mock.calls.filter(([input]) =>
+      input.toString().startsWith(CORPORATION_NUMBER_URL),
+    );
+    expect(lookups).toHaveLength(1);
+  });
+
+  it("shows a lookup error instead of 'invalid' when the API is unreachable", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => {
+        throw new TypeError("Failed to fetch");
+      }),
+    );
+    renderForm();
+
+    await user.type(getFields().corporationNumber, VALID_CORPORATION_NUMBER);
+    await user.tab();
+
+    expect(
+      await screen.findByText(
+        "Could not verify corporation number. Please try again.",
+      ),
+    ).toBeVisible();
   });
 
   it("submits the form values and shows a success message on 200", async () => {

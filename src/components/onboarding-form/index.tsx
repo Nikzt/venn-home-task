@@ -1,13 +1,15 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useMemo } from "react";
 import { Controller, useForm } from "react-hook-form";
 import {
   CORPORATION_NUMBER_LENGTH,
+  createOnboardingFormSchema,
   NAME_MAX_LENGTH,
   type OnboardingFormValues,
-  onboardingFormSchema,
 } from "@/lib/schemas/onboarding";
+import { useCorporationNumberValidator } from "@/queries/corporation-number";
 import { useSubmitOnboarding } from "@/queries/onboarding";
 import FormSubmitButton from "../common/form-submit-button";
 import {
@@ -22,8 +24,14 @@ import { Input } from "../ui/input";
 const PHONE_PLACEHOLDER = "+1";
 
 export default function OnboardingForm() {
+  const validateCorporationNumber = useCorporationNumberValidator();
+  const schema = useMemo(
+    () => createOnboardingFormSchema({ validateCorporationNumber }),
+    [validateCorporationNumber],
+  );
+
   const form = useForm<OnboardingFormValues>({
-    resolver: zodResolver(onboardingFormSchema),
+    resolver: zodResolver(schema),
     mode: "onBlur",
     reValidateMode: "onBlur",
     defaultValues: {
