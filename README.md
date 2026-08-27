@@ -1,36 +1,50 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Onboarding Form
 
-## Getting Started
+Onboarding form built for the Venn front-end take-home task.
 
-First, run the development server:
+**Stack:** Next.js 16 (App Router) · React 19 · TypeScript · React Hook Form · Zod · TanStack Query · libphonenumber-js · Tailwind CSS 4 + shadcn/ui · Vitest + React Testing Library · Biome
+
+## Running
+
+Requires Node 20+. The lockfile is for [Bun](https://bun.sh), but npm/pnpm work too.
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+bun install        # or npm install
+bun run dev        # http://localhost:3000
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Other scripts:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+bun run build      # production build
+bun run start      # serve the production build
+bun run lint       # biome check (lint + format check)
+bun run format     # biome format --write
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+No environment variables are needed; the API base URLs are constants in `src/queries/`.
 
-## Learn More
+## Testing
 
-To learn more about Next.js, take a look at the following resources:
+```bash
+bun run test        # single run
+bun run test:watch  # watch mode
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Tests run in Vitest with jsdom. `fetch` is stubbed in the component tests, so no network access is required.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- `src/components/onboarding-form/onboarding-form.test.tsx` — integration tests via React Testing Library: required-field errors on empty submit, on-blur phone validation, `+1` prefill on focus, on-blur corporation-number lookup against the (mocked) API, lookup caching (both valid and 404/invalid results), lookup-failure messaging, submit-button disabled states, and 200 / 400 submission handling.
+- `src/lib/schemas/onboarding.test.ts` — unit tests for the Zod schema and `isCanadianPhoneNumber`.
 
-## Deploy on Vercel
+## Project structure
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```
+src/
+  app/                       Next.js app shell (layout, page, React Query provider)
+  components/
+    onboarding-form/         The form, its tests, and the async-validation resolver hook
+    common/                  Reusable form primitives (FormTextField, FormSubmitButton, FormContainer)
+    ui/                      shadcn/ui components
+  lib/schemas/onboarding.ts  Zod schema + sync validation rules
+  queries/                   API calls and React Query hooks (corporation number lookup, submission)
+```
