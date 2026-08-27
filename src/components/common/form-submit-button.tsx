@@ -3,6 +3,8 @@ import { cn } from "@/lib/utils";
 import { Button } from "../ui/button";
 
 type FormSubmitButtonProps = {
+  /** An async field validation (e.g. on blur) is in flight. */
+  isValidating: boolean;
   /** Form-level validation/submission is in progress. */
   isSubmitting: boolean;
   /** The submit request is in flight. */
@@ -12,6 +14,7 @@ type FormSubmitButtonProps = {
 };
 
 export default function FormSubmitButton({
+  isValidating,
   isSubmitting,
   isPending,
   isSuccess,
@@ -24,7 +27,7 @@ export default function FormSubmitButton({
         isSuccess &&
           "bg-transparent text-muted-foreground transition-colors hover:bg-transparent",
       )}
-      disabled={isSubmitting || isPending || isSuccess}
+      disabled={isValidating || isSubmitting || isPending || isSuccess}
     >
       {isSuccess ? (
         <>

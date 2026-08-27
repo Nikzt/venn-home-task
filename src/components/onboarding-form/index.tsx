@@ -18,6 +18,7 @@ import {
   FieldGroup,
   FieldLabel,
   FieldSet,
+  FieldValidationResult,
 } from "../ui/field";
 import { Input } from "../ui/input";
 
@@ -118,6 +119,10 @@ export default function OnboardingForm() {
                 {fieldState.invalid && (
                   <FieldError errors={[fieldState.error]} />
                 )}
+                <FieldValidationResult
+                  isLoading={fieldState.isValidating}
+                  isValid={fieldState.isTouched && !fieldState.invalid}
+                />
               </Field>
             )}
           />
@@ -140,6 +145,10 @@ export default function OnboardingForm() {
                 {fieldState.invalid && (
                   <FieldError errors={[fieldState.error]} />
                 )}
+                <FieldValidationResult
+                  isLoading={fieldState.isValidating}
+                  isValid={fieldState.isTouched && !fieldState.invalid}
+                />
               </Field>
             )}
           />
@@ -150,6 +159,7 @@ export default function OnboardingForm() {
           </p>
         )}
         <FormSubmitButton
+          isValidating={form.formState.isValidating}
           isSubmitting={form.formState.isSubmitting}
           isPending={submitOnboarding.isPending}
           isSuccess={submitOnboarding.isSuccess}

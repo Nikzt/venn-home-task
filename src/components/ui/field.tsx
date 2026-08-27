@@ -1,6 +1,7 @@
 "use client";
 
 import { cva, type VariantProps } from "class-variance-authority";
+import { Check, CheckCircle2, Loader2 } from "lucide-react";
 import { useMemo } from "react";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
@@ -226,11 +227,48 @@ function FieldError({
   );
 }
 
+/**
+ * Positioned like FieldError; shows an inline status for async validation.
+ * Renders nothing while invalid — FieldError owns that case.
+ */
+function FieldValidationResult({
+  className,
+  isLoading,
+  isValid,
+  ...props
+}: React.ComponentProps<"div"> & {
+  isLoading: boolean;
+  isValid: boolean;
+}) {
+  if (!isValid) {
+    return null;
+  }
+
+  return (
+    <div
+      role="status"
+      data-slot="field-validation-result"
+      className={cn("absolute -bottom-5 ml-2", className)}
+      {...props}
+    >
+      {isLoading ? (
+        <Loader2
+          aria-label="Validating"
+          className="size-3 animate-spin text-muted-foreground"
+        />
+      ) : (
+        <Check aria-label="Valid" className="size-4 text-green-500" />
+      )}
+    </div>
+  );
+}
+
 export {
   Field,
   FieldLabel,
   FieldDescription,
   FieldError,
+  FieldValidationResult,
   FieldGroup,
   FieldLegend,
   FieldSeparator,

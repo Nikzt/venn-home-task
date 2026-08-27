@@ -84,6 +84,10 @@ async function fillForm(
   // Focusing the phone input prefills "+1", so type only the rest.
   await user.type(fields.phone, values.phone.replace(/^\+1/, ""));
   await user.type(fields.corporationNumber, values.corporationNumber);
+  // Blurring triggers the async corporation-number lookup; the submit button
+  // is disabled until it settles.
+  await user.tab();
+  await waitFor(() => expect(fields.submit).toBeEnabled());
   return fields;
 }
 
@@ -217,6 +221,16 @@ describe("OnboardingForm", () => {
         "Could not verify corporation number. Please try again.",
       ),
     ).toBeVisible();
+  });
+
+  it("disables the submit button while corporation-number validation is in flight", async () => {
+    renderForm();
+    const { corporationNumber, submit } = getFields();
+
+    await user.type(corporationNumber, VALID_VALUES.corporationNumber);
+    await user.tab();
+    await waitFor(() => expect(submit).toBeDisabled());
+    await waitFor(() => expect(submit).toBeEnabled());
   });
 
   it("submits the form values and shows a success message on 200", async () => {
